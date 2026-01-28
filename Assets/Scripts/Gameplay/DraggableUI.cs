@@ -3,7 +3,7 @@ using UnityEngine.EventSystems;
 
 public class DraggableUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
-    [SerializeField] private Canvas canvas; // the canvas this lives under
+    private Canvas canvas; // the canvas this lives under
 
     public bool IsDragging { get; private set; }
     public System.Action<DraggableUI> DragEnded;
@@ -16,6 +16,12 @@ public class DraggableUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
 
     private void Awake()
     {
+        canvas = GetComponentInParent<Canvas>();
+
+        if (canvas == null)
+            canvas = FindFirstObjectByType<Canvas>();
+
+
         rect = GetComponent<RectTransform>();
         canvasGroup = GetComponent<CanvasGroup>();
         if (canvasGroup == null) canvasGroup = gameObject.AddComponent<CanvasGroup>();
@@ -31,6 +37,8 @@ public class DraggableUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
         // Let raycasts pass through while dragging so drop targets can be detected
         canvasGroup.blocksRaycasts = false;
 
+        rect.SetAsLastSibling();
+        rect.SetParent(canvas.transform, worldPositionStays: true);
         rect.SetAsLastSibling();
 
         // item-specific behaviors
