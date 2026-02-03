@@ -9,12 +9,12 @@ public class WordBlock : MonoBehaviour
 
     public void OnUseInFillSlot()
     {
-        // TODO: implement
+        // TODO: implement human resource machine thingy
     }
 
     public void OnRemoveFromFillSlot()
     {
-        // TODO: implement
+        // TODO: destroy the instance
 
     }
 }

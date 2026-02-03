@@ -4,7 +4,7 @@ using InProcess.Gameplay;
 public class FillSlot : MonoBehaviour, IDropTarget
 {
     // TODO: use this for validation of forms
-    [SerializeField] private FieldType requiredType;
+    [SerializeField] public FieldType requiredType;
 
     public WordBlock CurrentWordBlock { get; private set; }
 
@@ -35,6 +35,9 @@ public class FillSlot : MonoBehaviour, IDropTarget
         var rect = wordBlock.GetComponent<RectTransform>();
         rect.SetParent(transform, false);
         rect.anchoredPosition = Vector2.zero;
+
+        //TODO: make it so that when we drop the text block into a fillSlot, 
+        // that textblock's text is truncated by the size of the slot
     }
 
     /// <summary>
