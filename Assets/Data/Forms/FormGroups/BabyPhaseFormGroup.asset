@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e28aec0cd1269324f9e648ed089de5d9, type: 3}
   m_Name: BabyPhaseFormGroup
   m_EditorClassIdentifier: Assembly-CSharp::FormGroup
-  groupName: Baby
+  groupName: IsBaby
   initialForms:
   - {fileID: 11400000, guid: 300e3364663528d45a1f2bf27c66c950, type: 2}
   forms:

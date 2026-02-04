@@ -16,7 +16,7 @@ MonoBehaviour:
     fontSize: 30
     lineHeight: 25
     color: {r: 0, g: 0, b: 0, a: 1}
-    alignment: 257
+    alignment: 258
     fontStyle: 1
   h1:
     fontSize: 25

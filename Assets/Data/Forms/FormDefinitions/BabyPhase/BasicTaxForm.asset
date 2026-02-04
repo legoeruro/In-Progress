@@ -32,9 +32,9 @@ MonoBehaviour:
   - type: 3
     text: $10 for finishing meal
     fillSlotData: {fileID: 0}
-  - type: 5
-    text: 
-    fillSlotData: {fileID: 11400000, guid: 1e070433b55e14a41888779db971575d, type: 2}
+  - type: 4
+    text: Enter baby's ssn here for confirmation.
+    fillSlotData: {fileID: 11400000, guid: 0d6a7e9ad14d61c4aaa0bec153dc4e31, type: 2}
   - type: 5
     text: 
     fillSlotData: {fileID: 11400000, guid: 0d6a7e9ad14d61c4aaa0bec153dc4e31, type: 2}
