@@ -11,8 +11,13 @@ public class FormDefinition : ScriptableObject
     /// </summary>
     public List<FormContentField> contentArray;
     public FormLayoutConfig formLayoutConfig;
+
+    [Header("Timing")]
+    [Tooltip("Time allowed to complete this form")]
+    public float timeToCompleteSeconds = -1f;
 }
 
+[System.Serializable]
 public struct FormContentField
 {
     public FormContentType type;

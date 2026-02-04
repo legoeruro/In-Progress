@@ -1,10 +1,8 @@
 using UnityEngine;
-using InProcess.Gameplay;
-
 public class FillSlot : MonoBehaviour, IDropTarget
 {
     // TODO: use this for validation of forms
-    [SerializeField] public FieldType requiredType;
+    [SerializeField] public FieldTypeData requiredType;
 
     public WordBlock CurrentWordBlock { get; private set; }
 

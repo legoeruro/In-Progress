@@ -6,8 +6,15 @@ public class FormGroup : ScriptableObject
 {
     public string groupName;
 
-    // List of form prefabs
-    public List<FormDefinition> forms; 
+    [Header("Forms")]
+    [Tooltip("Forms spawned immediately when the group unlocks")]
+    public List<FormDefinition> initialForms;
+
+    [Tooltip("Forms queued normally")]
+    public List<FormDefinition> forms;
+
+    [Tooltip("Forms queued after all other forms in this group are submitted")]
+    public List<FormDefinition> endingForms;
 
     public List<GameFlags> flagsOff;
     public List<GameFlags> flagsOn;

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class GameStateManager : MonoBehaviour
 {
@@ -14,11 +15,22 @@ public class GameStateManager : MonoBehaviour
     }
 
     [Header("Flags")]
-    List<FlagStateEntry> initialFlagStates = new List<FlagStateEntry>();
+    [SerializeField] List<FlagStateEntry> initialFlagStates = new List<FlagStateEntry>();
     private List<GameFlags> flags = new List<GameFlags>();
 
     [Header("Word Blocks")]
     [SerializeField] private List<WordBlock> ownedWordBlocks = new List<WordBlock>();
+
+    [Header("Form Timing")]
+    [SerializeField] private float baseFormArrivalSeconds = 10f;
+    [SerializeField] private float perSubmissionDecreaseSeconds = 0.2f;
+    [SerializeField] private float minFormArrivalSeconds = 3f;
+
+    [Header("Failures")]
+    [SerializeField] private List<FailFlagRule> failFlagRules = new List<FailFlagRule>();
+
+    [Header("Expired Forms")]
+    [SerializeField] private List<FormDefinition> expiredForms = new List<FormDefinition>();
 
     private readonly Dictionary<GameFlags, bool> flagStates = new Dictionary<GameFlags, bool>();
     private readonly Dictionary<string, GameFlags> flagByName = new Dictionary<string, GameFlags>(StringComparer.OrdinalIgnoreCase);
@@ -27,6 +39,17 @@ public class GameStateManager : MonoBehaviour
 
     public IReadOnlyDictionary<GameFlags, bool> FlagStates => flagStates;
     public IReadOnlyList<WordBlock> OwnedWordBlocks => ownedWordBlocks;
+    public IReadOnlyList<FormDefinition> ExpiredForms => expiredForms;
+
+    public int SubmissionCount { get; private set; }
+    public int SubmissionFailCount { get; private set; }
+
+    [Serializable]
+    public struct FailFlagRule
+    {
+        public int failCount;
+        public GameFlags flagToSetTrue;
+    }
 
     private void Awake()
     {
@@ -139,6 +162,42 @@ public class GameStateManager : MonoBehaviour
         {
             if (flag == null) continue;
             SetFlagState(flag, defaultState);
+        }
+    }
+
+    public float GetCurrentFormArrivalDelay()
+    {
+        float delay = baseFormArrivalSeconds - (SubmissionCount * perSubmissionDecreaseSeconds);
+        return Mathf.Clamp(delay, minFormArrivalSeconds, baseFormArrivalSeconds);
+    }
+
+    public void RegisterSubmissionSuccess()
+    {
+        SubmissionCount++;
+    }
+
+    public void RegisterSubmissionFailure()
+    {
+        SubmissionFailCount++;
+        EvaluateFailureRules();
+    }
+
+    public void RegisterExpiredForm(FormDefinition formDefinition)
+    {
+        if (formDefinition == null) return;
+        if (!expiredForms.Contains(formDefinition))
+            expiredForms.Add(formDefinition);
+    }
+
+    private void EvaluateFailureRules()
+    {
+        if (failFlagRules == null || failFlagRules.Count == 0) return;
+
+        foreach (var rule in failFlagRules)
+        {
+            if (rule.failCount <= 0 || rule.flagToSetTrue == null) continue;
+            if (SubmissionFailCount >= rule.failCount)
+                SetFlagState(rule.flagToSetTrue, true);
         }
     }
 

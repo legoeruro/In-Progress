@@ -49,6 +49,13 @@ public class DraggableUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
         {
             wordBlock.currentSlot.Detach();
         }
+
+        // form: detach from submit zone
+        var form = GetComponent<Form>();
+        if (form != null && form.CurrentSubmitZone != null)
+        {
+            form.CurrentSubmitZone.Deregister(form);
+        }
     }
 
     public void OnDrag(PointerEventData eventData)

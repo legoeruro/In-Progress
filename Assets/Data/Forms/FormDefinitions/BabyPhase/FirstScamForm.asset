@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6fbe38cb1770d104cbb184795ed211e0, type: 3}
+  m_Name: FirstScamForm
+  m_EditorClassIdentifier: Assembly-CSharp::FormDefinition
+  contentArray:
+  - type: 0
+    text: Baby's first 1 mileon dolaar
+    fillSlotData: {fileID: 0}
+  - type: 1
+    text: Baby just won 1 mil by existing!
+    fillSlotData: {fileID: 0}
+  - type: 4
+    text: Enter baby's SSN below to claim baby's ssn (the big people will know where
+      to send baby's money)
+    fillSlotData: {fileID: 0}
+  - type: 5
+    text: 
+    fillSlotData: {fileID: 11400000, guid: 905a2cb823b34bb43a01c7b6149e42a1, type: 2}
+  formLayoutConfig: {fileID: 11400000, guid: accf031c3c525f345ad094518d115445, type: 2}
+  timeToCompleteSeconds: 30

@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6fbe38cb1770d104cbb184795ed211e0, type: 3}
+  m_Name: BasicTaxForm
+  m_EditorClassIdentifier: Assembly-CSharp::FormDefinition
+  contentArray:
+  - type: 0
+    text: Baby's first tax form
+    fillSlotData: {fileID: 0}
+  - type: 1
+    text: Baby just did some chores for mama!
+    fillSlotData: {fileID: 0}
+  - type: 4
+    text: Because baby just did some chores to mama, baby now has to fill out taxes
+      for the items.
+    fillSlotData: {fileID: 0}
+  - type: 2
+    text: Billable items
+    fillSlotData: {fileID: 0}
+  - type: 3
+    text: $5 for washing dishes
+    fillSlotData: {fileID: 0}
+  - type: 3
+    text: $10 for finishing meal
+    fillSlotData: {fileID: 0}
+  - type: 5
+    text: 
+    fillSlotData: {fileID: 11400000, guid: 1e070433b55e14a41888779db971575d, type: 2}
+  - type: 5
+    text: 
+    fillSlotData: {fileID: 11400000, guid: 0d6a7e9ad14d61c4aaa0bec153dc4e31, type: 2}
+  formLayoutConfig: {fileID: 11400000, guid: c186a3b435dad524185f0d573db0a04a, type: 2}
+  timeToCompleteSeconds: 30
