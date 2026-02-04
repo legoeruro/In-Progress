@@ -1,7 +1,7 @@
 using UnityEngine;
 using InProcess.Gameplay;
 
-[CreateAssetMenu(menuName = "Game/Item Data")]
+[CreateAssetMenu(menuName = "In Progress/Item Data")]
 public class ItemData : ScriptableObject
 {
     public string itemId;

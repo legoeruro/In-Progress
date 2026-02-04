@@ -3,7 +3,7 @@ using InProcess.Gameplay;
 using System.Collections.Generic;
 using System;
 
-[CreateAssetMenu(menuName = "Form Definition")]
+[CreateAssetMenu(menuName = "In Progress/Forms/Form Definition")]
 public class FormDefinition : ScriptableObject
 {
     /// <summary>
@@ -11,10 +11,6 @@ public class FormDefinition : ScriptableObject
     /// </summary>
     public List<FormContentField> contentArray;
     public FormLayoutConfig formLayoutConfig;
-
-    public string itemId;
-    public ItemType type;
-    public Sprite sprite;
 }
 
 public struct FormContentField

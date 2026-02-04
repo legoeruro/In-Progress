@@ -3,7 +3,7 @@ using InProcess.Gameplay;
 using System.Collections.Generic;
 using System;
 
-[CreateAssetMenu(menuName = "Fill Slot Data (for Forms)")]
+[CreateAssetMenu(menuName = "In Progress/Forms/Fill Slot Data (for Forms)")]
 public class FillSlotData : ScriptableObject
 {
     public FieldType requiredType;

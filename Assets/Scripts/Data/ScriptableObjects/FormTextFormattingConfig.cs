@@ -2,7 +2,7 @@ using UnityEngine;
 using TMPro;
 using System;
 
-[CreateAssetMenu(menuName = "Forms/Form Text Formatting Config")]
+[CreateAssetMenu(menuName = "In Progress/Forms/Form Text Formatting Config")]
 public class FormTextFormattingConfig : ScriptableObject
 {
     [Header("Format Blocks")]

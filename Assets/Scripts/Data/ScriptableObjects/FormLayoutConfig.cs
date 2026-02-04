@@ -1,6 +1,6 @@
 using UnityEngine;
 
-[CreateAssetMenu(menuName = "Forms/Form Layout Config")]
+[CreateAssetMenu(menuName = "In Progress/Forms/Form Layout Config")]
 public class FormLayoutConfig : ScriptableObject
 {
     [Header("Layout Margins")]
