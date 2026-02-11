@@ -15,6 +15,10 @@ public class FormDefinition : ScriptableObject
     [Header("Timing")]
     [Tooltip("Time allowed to complete this form")]
     public float timeToCompleteSeconds = -1f;
+
+    [Header("Behavior")]
+    [Tooltip("If true, this form should be discarded instead of submitted.")]
+    public bool shouldBeDiscarded = false;
 }
 
 [System.Serializable]

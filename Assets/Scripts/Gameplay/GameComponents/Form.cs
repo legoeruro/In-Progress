@@ -9,6 +9,7 @@ public class Form : MonoBehaviour
 {
     public FormDefinition Definition { get; private set; }
     public SubmitZone CurrentSubmitZone { get; private set; }
+    public DiscardZone CurrentDiscardZone { get; private set; }
 
     // Assuming we're generating the forms and it's contents automatically
     private List<FillSlot> formSlots;
@@ -313,9 +314,21 @@ public class Form : MonoBehaviour
         CurrentSubmitZone = null;
     }
 
+    public void SetDiscardZone(DiscardZone zone)
+    {
+        CurrentDiscardZone = zone;
+    }
+
+    public void ClearDiscardZone()
+    {
+        CurrentDiscardZone = null;
+    }
+
     private void OnDisable()
     {
         if (CurrentSubmitZone != null)
             CurrentSubmitZone.Deregister(this);
+        if (CurrentDiscardZone != null)
+            CurrentDiscardZone.Deregister(this);
     }
 }

@@ -114,6 +114,10 @@ public class DraggableUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
         {
             form.CurrentSubmitZone.Deregister(form);
         }
+        if (form != null && form.CurrentDiscardZone != null)
+        {
+            form.CurrentDiscardZone.Deregister(form);
+        }
     }
 
     public void OnDrag(PointerEventData eventData)

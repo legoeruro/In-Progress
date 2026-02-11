@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class FormManager : MonoBehaviour
 {
@@ -17,7 +16,6 @@ public class FormManager : MonoBehaviour
 
     [Header("Submission")]
     [SerializeField] private SubmitZone submitZone;
-    [SerializeField] private Button submitButton;
 
     [Header("Timing")]
     [SerializeField] private bool enableTimedArrivals = true;
@@ -40,6 +38,8 @@ public class FormManager : MonoBehaviour
     public event Action<FormGroup> FormGroupUnlocked;
     public event Action<FormDefinition, Form> FormCreated;
     public event Action<FormDefinition> FormSubmitted;
+    public event Action<FormDefinition> FormSubmissionFailed;
+    public event Action<FormDefinition> FormDiscarded;
 
 
     public List<FormDefinition> IncomingForms => incomingForms;
@@ -61,8 +61,8 @@ public class FormManager : MonoBehaviour
         if (listenForFlagChanges && gameStateManager != null)
             gameStateManager.FlagStateChanged += OnFlagStateChanged;
 
-        if (submitButton != null)
-            submitButton.onClick.AddListener(SubmitAllFromZone);
+        if (submitZone != null)
+            submitZone.SubmitRequested += OnSubmitRequested;
 
         if (enableTimedArrivals)
             arrivalRoutine = StartCoroutine(FormArrivalLoop());
@@ -75,8 +75,8 @@ public class FormManager : MonoBehaviour
         if (listenForFlagChanges && gameStateManager != null)
             gameStateManager.FlagStateChanged -= OnFlagStateChanged;
 
-        if (submitButton != null)
-            submitButton.onClick.RemoveListener(SubmitAllFromZone);
+        if (submitZone != null)
+            submitZone.SubmitRequested -= OnSubmitRequested;
 
         if (arrivalRoutine != null)
         {
@@ -223,37 +223,55 @@ public class FormManager : MonoBehaviour
             }
         }
 
-        //TODO: add special behavior for form submission - fail or succeed
+        bool isValidSubmission = form.VerifyForm() && !def.shouldBeDiscarded;
+        ResolveFormOutcome(def, form, isSuccess: isValidSubmission, wasDiscarded: false);
+        return isValidSubmission;
+    }
+
+    public bool DiscardForm(Form form)
+    {
+        if (form == null) return false;
+
+        if (!activeFormDefs.TryGetValue(form, out var def))
+        {
+            def = form.Definition;
+            if (def == null)
+            {
+                Debug.LogWarning("FormManager: Tried to discard a form with no definition.");
+                return false;
+            }
+        }
+
+        // Current design: discarding always counts as submission failure.
+        ResolveFormOutcome(def, form, isSuccess: false, wasDiscarded: true);
+        return true;
+    }
+
+    private void ResolveFormOutcome(FormDefinition def, Form form, bool isSuccess, bool wasDiscarded)
+    {
         incomingForms.Remove(def);
         if (!submittedForms.Contains(def))
             submittedForms.Add(def);
 
         form.gameObject.SetActive(false);
-        FormSubmitted?.Invoke(def);
 
-        if (!form.VerifyForm())
+        if (isSuccess)
+        {
+            if (gameStateManager != null)
+                gameStateManager.RegisterSubmissionSuccess();
+            FormSubmitted?.Invoke(def);
+        }
+        else
         {
             if (gameStateManager != null)
                 gameStateManager.RegisterSubmissionFailure();
-            CheckForGroupCompletion(def);
-            return false;
+            FormSubmissionFailed?.Invoke(def);
+            if (wasDiscarded)
+                FormDiscarded?.Invoke(def);
         }
 
-        if (gameStateManager != null)
-            gameStateManager.RegisterSubmissionSuccess();
         CheckForGroupCompletion(def);
         form.Expired -= OnFormExpired;
-        return true;
-    }
-
-    /// <summary>
-    /// Flow of this function: the user presses the button -> we submit all forms currently in the zone.
-    /// </summary>
-    private void SubmitAllFromZone()
-    {
-        if (submitZone == null) return;
-        var formsSnapshot = new List<Form>(submitZone.RegisteredForms);
-        OnSubmitRequested(formsSnapshot);
     }
 
     private void OnSubmitRequested(List<Form> forms)

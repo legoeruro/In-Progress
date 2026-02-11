@@ -7,6 +7,7 @@ public class SubmitZone : MonoBehaviour, IDropTarget
 {
     [Header("Layout")]
     [SerializeField] private RectTransform snapPoint;
+    [SerializeField] private Button submitButton;
 
     [Header("Visuals")]
     [SerializeField] private float droppedScaleMultiplier = 0.5f;
@@ -28,6 +29,18 @@ public class SubmitZone : MonoBehaviour, IDropTarget
         zoneImage = GetComponent<Image>();
         if (zoneImage != null && tintZoneOnHover)
             zoneImage.color = normalColor;
+    }
+
+    private void OnEnable()
+    {
+        if (submitButton != null)
+            submitButton.onClick.AddListener(SubmitAll);
+    }
+
+    private void OnDisable()
+    {
+        if (submitButton != null)
+            submitButton.onClick.RemoveListener(SubmitAll);
     }
 
     public bool CanAccept(DraggableUI draggable)
