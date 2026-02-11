@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7dbacf442d4dfb443bdb122d4f01f9b4, type: 3}
   m_Name: School ID
   m_EditorClassIdentifier: Assembly-CSharp::FieldTypeData
-  fieldId: 
-  displayName: 
+  fieldId: SchoolID
+  displayName: School ID

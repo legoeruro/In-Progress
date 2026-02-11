@@ -1,4 +1,6 @@
 using UnityEngine;
+using InProcess.Gameplay;
+
 public class FillSlot : MonoBehaviour, IDropTarget
 {
     // TODO: use this for validation of forms
@@ -12,6 +14,7 @@ public class FillSlot : MonoBehaviour, IDropTarget
         var wordBlock = draggable.GetComponent<WordBlock>();
 
         if (wordBlock == null) return false;
+        if (wordBlock.inventoryItemType != ItemType.WordBlock) return false;
         return true;
     }
 

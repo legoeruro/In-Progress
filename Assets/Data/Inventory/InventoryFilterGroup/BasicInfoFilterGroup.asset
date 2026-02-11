@@ -9,8 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7dbacf442d4dfb443bdb122d4f01f9b4, type: 3}
-  m_Name: Phone number
-  m_EditorClassIdentifier: Assembly-CSharp::FieldTypeData
-  fieldId: Phone
-  displayName: Phone
+  m_Script: {fileID: 11500000, guid: c4951bc018fe8ec4186d4aae9f2472ea, type: 3}
+  m_Name: BasicInfoFilterGroup
+  m_EditorClassIdentifier: Assembly-CSharp::InventoryFilterGroup
+  groupId: BasicInfo
+  displayName: Basic Info

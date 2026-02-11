@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 97d8712b14bd52044ab9fcac156b564b, type: 3}
+  m_Name: NameDef
+  m_EditorClassIdentifier: Assembly-CSharp::WordBlockDefinition
+  definitionId: Name
+  itemType: 0
+  valueType: {fileID: 11400000, guid: dac36e6c283d6da47bb302603a8dbf30, type: 2}
+  value: Ben
+  inventoryFilterGroup: {fileID: 11400000, guid: 710e2f4e1aa8e274e9e2820b663f8eee, type: 2}
+  unlockedAtStart: 1
+  typeLabelOverride: 
+  overrideWidthSettings: 0
+  minWidth: 110
+  maxWidth: 260
+  horizontalPadding: 24

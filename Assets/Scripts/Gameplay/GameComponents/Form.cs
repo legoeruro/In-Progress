@@ -190,6 +190,8 @@ public class Form : MonoBehaviour
     {
         foreach (var slot in formSlots)
         {
+            if (!slot.CurrentWordBlock)
+                return false;
             if (slot.CurrentWordBlock.valueType != slot.requiredType)
             {
                 return false;
