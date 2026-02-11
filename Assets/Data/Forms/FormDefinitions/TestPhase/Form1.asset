@@ -14,7 +14,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::FormDefinition
   contentArray:
   - type: 0
-    text: Congratulations baby on finishing your first forms!
+    text: Form 1! test
     fillSlotData: {fileID: 0}
+  - type: 1
+    text: enter your name
+    fillSlotData: {fileID: 11400000, guid: 1e070433b55e14a41888779db971575d, type: 2}
+  - type: 5
+    text: enter your name
+    fillSlotData: {fileID: 11400000, guid: 1e070433b55e14a41888779db971575d, type: 2}
   formLayoutConfig: {fileID: 11400000, guid: c186a3b435dad524185f0d573db0a04a, type: 2}
   timeToCompleteSeconds: -1
+  shouldBeDiscarded: 0
+  rewardsOnReceive: []
+  rewardsOnSubmitSuccess: []
+  rewardsOnSubmitFailure: []

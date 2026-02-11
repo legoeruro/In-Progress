@@ -27,4 +27,8 @@ MonoBehaviour:
     text: 
     fillSlotData: {fileID: 11400000, guid: 905a2cb823b34bb43a01c7b6149e42a1, type: 2}
   formLayoutConfig: {fileID: 11400000, guid: accf031c3c525f345ad094518d115445, type: 2}
-  timeToCompleteSeconds: 30
+  timeToCompleteSeconds: 10
+  shouldBeDiscarded: 0
+  rewardsOnReceive: []
+  rewardsOnSubmitSuccess: []
+  rewardsOnSubmitFailure: []

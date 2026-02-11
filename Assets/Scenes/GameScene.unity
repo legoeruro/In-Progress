@@ -187,7 +187,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 69a081d816e088d42a07db353aaf4dc1, type: 2}
   - {fileID: 11400000, guid: 08d90f37127b40c4b81e1cfa2fd22bf9, type: 2}
   - {fileID: 11400000, guid: 4db6bcf987c66f6499ef5a8dd35a77b2, type: 2}
-  - {fileID: 11400000, guid: e0e82bb1fc99a1c4481685310cae8d12, type: 2}
   clearExistingChildrenOnBuild: 1
 --- !u!114 &22570896
 MonoBehaviour:
@@ -2020,8 +2019,10 @@ MonoBehaviour:
     initialState: 0
   - flag: {fileID: 11400000, guid: 0bdc6e8814d53eb499dfafebd262f95c, type: 2}
     initialState: 0
+  - flag: {fileID: 11400000, guid: ee7402e919919ce4598452e49e468a05, type: 2}
+    initialState: 0
   ownedWordBlocks: []
-  baseFormArrivalSeconds: 8
+  baseFormArrivalSeconds: 4
   perSubmissionDecreaseSeconds: 0.2
   minFormArrivalSeconds: 3
   failFlagRules:

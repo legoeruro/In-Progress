@@ -16,5 +16,16 @@ MonoBehaviour:
   - type: 0
     text: Congratulations baby on finishing your first forms!
     fillSlotData: {fileID: 0}
+  - type: 1
+    text: You will be receiving 2 more word blocks. Get ready to enter the time trial
+      mode!
+    fillSlotData: {fileID: 0}
   formLayoutConfig: {fileID: 11400000, guid: c186a3b435dad524185f0d573db0a04a, type: 2}
   timeToCompleteSeconds: -1
+  shouldBeDiscarded: 0
+  rewardsOnReceive:
+  - {fileID: 11400000, guid: 0041fb7c7008ef34592a351ecfc5ee5e, type: 2}
+  - {fileID: 11400000, guid: bc58bac6ed7aff043977acd6b962fabd, type: 2}
+  - {fileID: 11400000, guid: 66270e2be4b8f7642910ab7f678f9dce, type: 2}
+  rewardsOnSubmitSuccess: []
+  rewardsOnSubmitFailure: []

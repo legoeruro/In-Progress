@@ -257,8 +257,6 @@ public class FormManager : MonoBehaviour
         if (!submittedForms.Contains(def))
             submittedForms.Add(def);
 
-        form.gameObject.SetActive(false);
-
         if (isSuccess)
         {
             if (gameStateManager != null)
@@ -281,11 +279,20 @@ public class FormManager : MonoBehaviour
         activeFormDefs.Remove(form);
         if (def != null)
             activeForms.Remove(def);
+
+        if (form != null)
+        {
+            form.gameObject.SetActive(false);
+            Destroy(form.gameObject);
+        }
     }
 
     private void ApplyRewards(IReadOnlyList<FormReward> rewards, FormDefinition def, Form form)
     {
         if (rewards == null || rewards.Count == 0) return;
+
+        if (gameStateManager == null)
+            gameStateManager = GameStateManager.Instance;
 
         var context = new FormRewardContext(
             gameStateManager,
@@ -341,6 +348,9 @@ public class FormManager : MonoBehaviour
         activeFormDefs.Remove(form);
         if (def != null)
             activeForms.Remove(def);
+
+        if (form != null)
+            Destroy(form.gameObject);
     }
 
     private void CheckForGroupCompletion(FormDefinition def)
