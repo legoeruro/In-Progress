@@ -8,6 +8,7 @@ public class FormManager : MonoBehaviour
     [Header("References")]
     public GameStateManager gameStateManager;
     public FormFactory formFactory;
+    [SerializeField] private InventoryCatalog inventoryCatalog;
 
     [Header("Form Groups")]
     public List<FormGroup> formGroups = new List<FormGroup>();
@@ -54,6 +55,8 @@ public class FormManager : MonoBehaviour
     {
         if (gameStateManager == null)
             gameStateManager = GameStateManager.Instance;
+        if (inventoryCatalog == null)
+            inventoryCatalog = FindFirstObjectByType<InventoryCatalog>();
     }
 
     private void OnEnable()
@@ -205,6 +208,7 @@ public class FormManager : MonoBehaviour
         activeForms[def] = formInstance;
         activeFormDefs[formInstance] = def;
         formInstance.Expired += OnFormExpired;
+        ApplyRewards(def.rewardsOnReceive, def, formInstance);
         formInstance.PlaySpawnAnimation();
         FormCreated?.Invoke(def, formInstance);
     }
@@ -259,12 +263,14 @@ public class FormManager : MonoBehaviour
         {
             if (gameStateManager != null)
                 gameStateManager.RegisterSubmissionSuccess();
+            ApplyRewards(def.rewardsOnSubmitSuccess, def, form);
             FormSubmitted?.Invoke(def);
         }
         else
         {
             if (gameStateManager != null)
                 gameStateManager.RegisterSubmissionFailure();
+            ApplyRewards(def.rewardsOnSubmitFailure, def, form);
             FormSubmissionFailed?.Invoke(def);
             if (wasDiscarded)
                 FormDiscarded?.Invoke(def);
@@ -272,6 +278,36 @@ public class FormManager : MonoBehaviour
 
         CheckForGroupCompletion(def);
         form.Expired -= OnFormExpired;
+        activeFormDefs.Remove(form);
+        if (def != null)
+            activeForms.Remove(def);
+    }
+
+    private void ApplyRewards(IReadOnlyList<FormReward> rewards, FormDefinition def, Form form)
+    {
+        if (rewards == null || rewards.Count == 0) return;
+
+        var context = new FormRewardContext(
+            gameStateManager,
+            this,
+            inventoryCatalog,
+            def,
+            form);
+
+        for (int i = 0; i < rewards.Count; i++)
+        {
+            var reward = rewards[i];
+            if (reward == null) continue;
+
+            try
+            {
+                reward.Apply(context);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"FormManager: Reward '{reward.name}' failed on form '{(def != null ? def.name : "null")}'. Exception: {ex}");
+            }
+        }
     }
 
     private void OnSubmitRequested(List<Form> forms)

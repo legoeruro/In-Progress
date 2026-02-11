@@ -19,6 +19,14 @@ public class FormDefinition : ScriptableObject
     [Header("Behavior")]
     [Tooltip("If true, this form should be discarded instead of submitted.")]
     public bool shouldBeDiscarded = false;
+
+    [Header("Rewards")]
+    [Tooltip("Applied when the form is received/spawned into the scene.")]
+    public List<FormReward> rewardsOnReceive = new List<FormReward>();
+    [Tooltip("Applied when the form is successfully submitted.")]
+    public List<FormReward> rewardsOnSubmitSuccess = new List<FormReward>();
+    [Tooltip("Applied when submission fails (including discard).")]
+    public List<FormReward> rewardsOnSubmitFailure = new List<FormReward>();
 }
 
 [System.Serializable]

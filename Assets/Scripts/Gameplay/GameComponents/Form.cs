@@ -24,6 +24,7 @@ public class Form : MonoBehaviour
     private CanvasGroup canvasGroup;
     private bool isExpiring;
     private Coroutine spawnRoutine;
+    private Coroutine expireRoutine;
 
     [Header("Spawn Animation")]
     [SerializeField] private bool playSpawnAnimation = true;
@@ -34,6 +35,8 @@ public class Form : MonoBehaviour
 
     public void Initialize(FormDefinition formData)
     {
+        ResetTimingState();
+
         Definition = formData;
         timeToCompleteSeconds = formData != null ? formData.timeToCompleteSeconds : -1f;
 
@@ -203,6 +206,9 @@ public class Form : MonoBehaviour
 
     private void InitializeTiming()
     {
+        ResetTimingState();
+        EnsureTimeBarReference();
+
         if (timeToCompleteSeconds < 0f)
         {
             if (timeBarImage != null)
@@ -218,6 +224,10 @@ public class Form : MonoBehaviour
 
         if (timeBarImage != null)
         {
+            timeBarImage.type = Image.Type.Filled;
+            timeBarImage.fillMethod = Image.FillMethod.Horizontal;
+            timeBarImage.fillOrigin = 0;
+            timeBarImage.transform.SetAsLastSibling();
             timeBarImage.gameObject.SetActive(true);
             timeBarImage.fillAmount = 1f;
         }
@@ -241,7 +251,8 @@ public class Form : MonoBehaviour
         if (remainingSeconds <= 0f)
         {
             isExpiring = false;
-            StartCoroutine(FadeOutAndDisable());
+            if (expireRoutine == null)
+                expireRoutine = StartCoroutine(FadeOutAndDisable());
         }
     }
 
@@ -263,6 +274,7 @@ public class Form : MonoBehaviour
         }
 
         canvasGroup.alpha = 0f;
+        expireRoutine = null;
         Expired?.Invoke(this);
         gameObject.SetActive(false);
     }
@@ -326,9 +338,48 @@ public class Form : MonoBehaviour
 
     private void OnDisable()
     {
+        ResetTimingState();
+
         if (CurrentSubmitZone != null)
             CurrentSubmitZone.Deregister(this);
         if (CurrentDiscardZone != null)
             CurrentDiscardZone.Deregister(this);
+    }
+
+    private void ResetTimingState()
+    {
+        isExpiring = false;
+        remainingSeconds = 0f;
+        totalSeconds = 0f;
+
+        if (expireRoutine != null)
+        {
+            StopCoroutine(expireRoutine);
+            expireRoutine = null;
+        }
+
+        if (canvasGroup == null)
+            canvasGroup = GetComponent<CanvasGroup>();
+        if (canvasGroup != null)
+            canvasGroup.alpha = 1f;
+    }
+
+    private void EnsureTimeBarReference()
+    {
+        if (timeBarImage != null) return;
+
+        var images = GetComponentsInChildren<Image>(includeInactive: true);
+        for (int i = 0; i < images.Length; i++)
+        {
+            var image = images[i];
+            if (image == null || image.gameObject == gameObject) continue;
+
+            var name = image.gameObject.name;
+            if (name.IndexOf("timer", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                timeBarImage = image;
+                return;
+            }
+        }
     }
 }

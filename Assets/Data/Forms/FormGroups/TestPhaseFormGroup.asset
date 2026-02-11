@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e28aec0cd1269324f9e648ed089de5d9, type: 3}
+  m_Name: TestPhaseFormGroup
+  m_EditorClassIdentifier: Assembly-CSharp::FormGroup
+  groupName: IsBaby
+  initialForms:
+  - {fileID: 11400000, guid: 300e3364663528d45a1f2bf27c66c950, type: 2}
+  forms:
+  - {fileID: 11400000, guid: dcda64dda4004e847aeb16b789fd8b45, type: 2}
+  - {fileID: 11400000, guid: e0897d61d9167c44d8ad9d15023e85e1, type: 2}
+  endingForms:
+  - {fileID: 11400000, guid: e75f1bd8e8cf61b49884e74d9e964e62, type: 2}
+  flagsOff:
+  - {fileID: 11400000, guid: de384f50f062ffc4387d85e19f34e9af, type: 2}
+  flagsOn: []
