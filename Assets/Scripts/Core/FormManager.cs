@@ -11,6 +11,8 @@ public class FormManager : MonoBehaviour
     public FormFactory formFactory;
     [SerializeField] private InventoryCatalog inventoryCatalog;
     [SerializeField] private AlphaScoreService alphaScoreService;
+    [SerializeField] private FormWindowMenu formWindowMenu;
+    [SerializeField] private bool useFormWindowMenu = true;
     [SerializeField] private FormSpawnSource formSpawnSource;
     [SerializeField] private bool useFormSpawnSource;
 
@@ -27,9 +29,10 @@ public class FormManager : MonoBehaviour
     [SerializeField] private float idleCheckSeconds = 1f;
 
     [Header("Alpha Fail Condition")]
-    [SerializeField] private bool enableLoseOnUnfilledOverflow = true;
-    [SerializeField] private int maxUnfilledForms = 5;
+    [SerializeField] private bool enableLoseOnFailureCount = true;
+    [SerializeField] private int maxFailedForms = 5;
     [SerializeField] private string loseSceneName = "LoseScene";
+    [SerializeField] private bool enableSubmissionDebugLogs = true;
 
     // Form data
     private List<FormDefinition> incomingForms = new List<FormDefinition>();
@@ -71,6 +74,8 @@ public class FormManager : MonoBehaviour
             inventoryCatalog = FindFirstObjectByType<InventoryCatalog>();
         if (alphaScoreService == null)
             alphaScoreService = FindFirstObjectByType<AlphaScoreService>();
+        if (formWindowMenu == null)
+            formWindowMenu = FindFirstObjectByType<FormWindowMenu>();
     }
 
     private void OnEnable()
@@ -231,7 +236,9 @@ public class FormManager : MonoBehaviour
         activeFormDefs[formInstance] = def;
         formInstance.Expired += OnFormExpired;
         ApplyRewards(def.rewardsOnReceive, def, formInstance);
-        formInstance.PlaySpawnAnimation();
+        bool parkedInWindow = useFormWindowMenu && formWindowMenu != null && formWindowMenu.RegisterSpawnedForm(formInstance);
+        if (!parkedInWindow)
+            formInstance.PlaySpawnAnimation();
         FormCreated?.Invoke(def, formInstance);
         CheckLoseCondition();
     }
@@ -252,6 +259,12 @@ public class FormManager : MonoBehaviour
 
         var validation = form.EvaluateValidation();
         bool isValidSubmission = validation.IsValid && !def.shouldBeDiscarded;
+        if (enableSubmissionDebugLogs)
+        {
+            Debug.Log($"[FormManager] Submit: '{def.name}' => {(isValidSubmission ? "SUCCESS" : "FAIL")} " +
+                      $"(validFields={validation.IsValid}, shouldBeDiscarded={def.shouldBeDiscarded}, " +
+                      $"correct={validation.CorrectFields}, incorrectOrEmpty={validation.IncorrectOrEmptyFields})");
+        }
         ResolveFormOutcome(def, form, isSuccess: isValidSubmission, wasDiscarded: false, validation);
         return isValidSubmission;
     }
@@ -306,10 +319,15 @@ public class FormManager : MonoBehaviour
         }
 
         CheckForGroupCompletion(def);
+        if (formWindowMenu != null)
+            formWindowMenu.UnregisterForm(form);
         form.Expired -= OnFormExpired;
         activeFormDefs.Remove(form);
         if (def != null)
             activeForms.Remove(def);
+
+        LogSubmissionTotals(def, isSuccess);
+        CheckLoseCondition();
 
         if (form != null)
         {
@@ -367,21 +385,43 @@ public class FormManager : MonoBehaviour
         if (!activeFormDefs.TryGetValue(form, out var def))
             def = form.Definition;
 
-        if (def != null)
+        if (def == null)
         {
-            incomingForms.Remove(def);
-            if (gameStateManager != null)
-                gameStateManager.RegisterExpiredForm(def);
-            CheckForGroupCompletion(def);
+            if (enableSubmissionDebugLogs)
+                Debug.LogWarning("[FormManager] Timeout: form expired but has no FormDefinition.");
+            form.Expired -= OnFormExpired;
+            if (formWindowMenu != null)
+                formWindowMenu.UnregisterForm(form);
+            activeFormDefs.Remove(form);
+            Destroy(form.gameObject);
+            return;
         }
 
-        form.Expired -= OnFormExpired;
-        activeFormDefs.Remove(form);
-        if (def != null)
-            activeForms.Remove(def);
+        if (gameStateManager != null)
+            gameStateManager.RegisterExpiredForm(def);
 
-        if (form != null)
-            Destroy(form.gameObject);
+        var validation = form.EvaluateValidation();
+        if (enableSubmissionDebugLogs)
+        {
+            Debug.Log($"[FormManager] Timeout: '{def.name}' => FAIL " +
+                      $"(correct={validation.CorrectFields}, incorrectOrEmpty={validation.IncorrectOrEmptyFields})");
+        }
+
+        // Timeout now counts as failure and applies failure penalties/rewards.
+        ResolveFormOutcome(def, form, isSuccess: false, wasDiscarded: false, validation);
+    }
+
+    private void LogSubmissionTotals(FormDefinition def, bool wasSuccess)
+    {
+        if (!enableSubmissionDebugLogs)
+            return;
+
+        int successCount = gameStateManager != null ? gameStateManager.SubmissionCount : 0;
+        int failureCount = gameStateManager != null ? gameStateManager.SubmissionFailCount : 0;
+        int unresolvedCount = activeFormDefs.Count;
+
+        Debug.Log($"[FormManager] Totals after '{(def != null ? def.name : "UnknownForm")}' " +
+                  $"({(wasSuccess ? "SUCCESS" : "FAIL")}): success={successCount}, fail={failureCount}, unresolved={unresolvedCount}");
     }
 
     private void CheckForGroupCompletion(FormDefinition def)
@@ -493,14 +533,25 @@ public class FormManager : MonoBehaviour
 
     private void CheckLoseCondition()
     {
-        if (!enableLoseOnUnfilledOverflow || loseSceneTriggered)
+        if (loseSceneTriggered)
             return;
 
-        int threshold = Mathf.Max(0, maxUnfilledForms);
-        if (activeFormDefs.Count <= threshold)
+        bool shouldLoseFromFailureCount = false;
+        if (enableLoseOnFailureCount && gameStateManager != null)
+        {
+            int failThreshold = Mathf.Max(0, maxFailedForms);
+            shouldLoseFromFailureCount = gameStateManager.SubmissionFailCount >= failThreshold;
+        }
+
+        if (!shouldLoseFromFailureCount)
             return;
 
         loseSceneTriggered = true;
+        if (enableSubmissionDebugLogs)
+        {
+            int failCount = gameStateManager != null ? gameStateManager.SubmissionFailCount : 0;
+            Debug.Log($"[FormManager] Lose triggered: failCount={failCount}, fromFailureCount={shouldLoseFromFailureCount}");
+        }
         LoseTriggered?.Invoke();
 
         if (!string.IsNullOrWhiteSpace(loseSceneName))
