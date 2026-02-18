@@ -201,8 +201,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 1.0131, y: -345.49}
-  m_SizeDelta: {x: 1299.58, y: 114.73}
+  m_AnchoredPosition: {x: -0.13282, y: -382.95}
+  m_SizeDelta: {x: 1599.7, y: 134.4}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &22570895
 MonoBehaviour:
@@ -521,7 +521,7 @@ MonoBehaviour:
   enableTimedArrivals: 1
   idleCheckSeconds: 1
   enableLoseOnFailureCount: 1
-  maxFailedForms: 3
+  maxFailedForms: 5
   loseSceneName: LoseScene
   enableSubmissionDebugLogs: 1
 --- !u!4 &150337198
