@@ -12,10 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e28aec0cd1269324f9e648ed089de5d9, type: 3}
   m_Name: TestPhaseFormGroup
   m_EditorClassIdentifier: Assembly-CSharp::FormGroup
-  groupName: IsBaby
-  initialForms: []
+  groupName: TestPhase
+  initialForms:
+  - {fileID: 11400000, guid: 62c74cd2526751649a2c758355bdb674, type: 2}
   forms: []
   endingForms: []
-  flagsOff:
+  flagsOff: []
+  flagsOn:
   - {fileID: 11400000, guid: ee7402e919919ce4598452e49e468a05, type: 2}
-  flagsOn: []

@@ -1,0 +1,160 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7f4ab8483cc94d44ba2f64f00b73d530, type: 3}
+  m_Name: AlphaPromptLib
+  m_EditorClassIdentifier: Assembly-CSharp::AlphaPromptLibrary
+  prompts:
+  - title: Citizen Identity Verification Form
+    promptText: 'Please provide your full legal name as it appears on your most recent
+      government-issued documentation. Illegible submissions will be rejected.
+
+'
+    requiredSlot: {fileID: 11400000, guid: 1e070433b55e14a41888779db971575d, type: 2}
+    timeToCompleteSeconds: 15
+  - title: Driver Registration Confirmation
+    promptText: Enter your valid Driver Identification Number. Expired, provisional,
+      or revoked numbers are not accepted.
+    requiredSlot: {fileID: 11400000, guid: 09917be0a746973449452c593d6a7185, type: 2}
+    timeToCompleteSeconds: 15
+  - title: Social Security Acknowledgment
+    promptText: 'Provide your assigned Social Security Number. If you do not have
+      one, leave blank and wait for further instruction.
+
+'
+    requiredSlot: {fileID: 11400000, guid: 0d6a7e9ad14d61c4aaa0bec153dc4e31, type: 2}
+    timeToCompleteSeconds: 15
+  - title: Passport Revalidation Request
+    promptText: Enter your Passport Identification Number exactly as printed. Do
+      not include spaces unless instructed.
+    requiredSlot: {fileID: 11400000, guid: d4da788ecdbd30f41810cbdff1dd3a0e, type: 2}
+    timeToCompleteSeconds: 15
+  - title: 'Contact Trace Submission '
+    promptText: Provide your primary phone number for official correspondence. International
+      prefixes must be included.
+    requiredSlot: {fileID: 11400000, guid: d4da788ecdbd30f41810cbdff1dd3a0e, type: 2}
+    timeToCompleteSeconds: 15
+  - title: Employment Eligibility Review
+    promptText: To confirm your eligibility for work, submit your Social Security
+      Number below.
+    requiredSlot: {fileID: 11400000, guid: 0d6a7e9ad14d61c4aaa0bec153dc4e31, type: 2}
+    timeToCompleteSeconds: 15
+  - title: Interstate Driver Cross-Check
+    promptText: Enter your Driver ID to verify your compliance with interstate transport
+      regulations.
+    requiredSlot: {fileID: 11400000, guid: d4da788ecdbd30f41810cbdff1dd3a0e, type: 2}
+    timeToCompleteSeconds: 15
+  - title: Record Consistency Audit
+    promptText: 'Submit your full legal name for record reconciliation. Discrepancies
+      may result in delayed processing. '
+    requiredSlot: {fileID: 11400000, guid: 1e070433b55e14a41888779db971575d, type: 2}
+    timeToCompleteSeconds: 15
+  - title: Federal Travel Preclearance
+    promptText: Provide your passport number to proceed with travel authorization
+      review.
+    requiredSlot: {fileID: 11400000, guid: d4da788ecdbd30f41810cbdff1dd3a0e, type: 2}
+    timeToCompleteSeconds: 15
+  - title: Communication Reliability Assessment
+    promptText: Enter the phone number currently associated with your identity record.
+      Failure to provide a reachable number may affect status.
+    requiredSlot: {fileID: 11400000, guid: d4da788ecdbd30f41810cbdff1dd3a0e, type: 2}
+    timeToCompleteSeconds: 15
+  - title: Supplemental Identity Clarification Document
+    promptText: In order to maintain the integrity and continuity of your personal
+      record, it is necessary that you provide your full legal name exactly as it
+      appears in all prior filings, certifications, declarations, attestations, and
+      acknowledgments submitted to any and all relevant authorities. This includes
+      the correct spelling, capitalization, hyphenation, spacing, and any middle
+      initials or suffixes previously recorded. Variations, abbreviations, or assumed
+      names may result in delayed processing or secondary review.  Failure to provide
+      a name consistent with existing documentation may cause your record to be flagged
+      for manual reconciliation. Manual reconciliation may require additional submissions,
+      verification procedures, or correspondence. Please ensure accuracy before proceeding.
+    requiredSlot: {fileID: 11400000, guid: d4da788ecdbd30f41810cbdff1dd3a0e, type: 2}
+    timeToCompleteSeconds: 30
+  - title: Driver Identification Status Reaffirmation
+    promptText: To confirm your eligibility under current vehicular operation guidelines,
+      you are required to submit your valid Driver Identification Number as previously
+      issued by the appropriate governing authority. The number must be entered exactly
+      as it appears on the official credential, without omission or substitution
+      of characters. Expired, suspended, revoked, or provisional identification numbers
+      may not be accepted for this submission.  If your Driver Identification Number
+      has changed due to renewal, reissuance, or administrative correction, you must
+      enter the most recent valid number on file. Submission of an outdated or partial
+      number may result in temporary suspension of processing and require corrective
+      action.
+    requiredSlot: {fileID: 11400000, guid: 09917be0a746973449452c593d6a7185, type: 2}
+    timeToCompleteSeconds: 15
+  - title: Social Security Registration Continuity Verification
+    promptText: For purposes of cross-referencing your financial, employment, and
+      identification records, please provide your assigned Social Security Number
+      in full. The number must be entered exactly as issued, including all digits
+      in the proper sequence. Incomplete, transposed, or substituted entries may
+      result in misalignment across record systems.  Providing an incorrect number
+      may initiate an internal discrepancy review. During such a review, access to
+      certain services may be restricted until verification is complete. If you believe
+      your Social Security Number has been compromised, altered, or administratively
+      updated, enter the most recent number officially assigned to you.
+    requiredSlot: {fileID: 11400000, guid: 0d6a7e9ad14d61c4aaa0bec153dc4e31, type: 2}
+    timeToCompleteSeconds: 15
+  - title: International Travel Documentation Confirmation
+    promptText: 'As part of a routine compliance review, you are required to submit
+      your Passport Identification Number exactly as printed on your most recently
+      issued passport document. Please ensure that all alphanumeric characters are
+      entered in the correct order and that no additional spaces, punctuation, or
+      substitutions are included unless explicitly printed on the document itself.
+
+
+      Failure
+      to provide an accurate Passport Identification Number may delay authorization
+      for travel-related permissions, applications, or renewals. Discrepancies between
+      your submission and existing travel records may result in further verification
+      procedures or temporary restriction of related privileges.'
+    requiredSlot: {fileID: 11400000, guid: d4da788ecdbd30f41810cbdff1dd3a0e, type: 2}
+    timeToCompleteSeconds: 15
+  - title: Communication Record Alignment Request
+    promptText: To ensure uninterrupted correspondence and notification delivery,
+      you must provide your primary contact phone number currently associated with
+      your identity profile. The number should include all necessary digits, including
+      area code and any applicable international prefixes. Omissions or formatting
+      inconsistencies may prevent successful confirmation.  Please confirm that the
+      phone number entered below is active and capable of receiving official communications.
+      If the number differs from what is presently on record, your submission may
+      be subject to confirmation procedures before updates are applied. Failure to
+      maintain an accurate contact number may affect processing timelines.
+    requiredSlot: {fileID: 11400000, guid: cce355572d7b20142994066dd6375e59, type: 2}
+    timeToCompleteSeconds: 15
+  - title: Identity Consistency Review Addendum
+    promptText: In accordance with recent record standardization initiatives, you
+      are required to re-submit your full legal name for comparison against previously
+      archived documentation. This measure ensures uniformity across systems and
+      minimizes inconsistencies that may arise from clerical variance, transcription
+      errors, or unauthorized alterations. Please ensure that your entry matches
+      the most current legally recognized form of your name.  Discrepancies between
+      submissions may necessitate supplementary documentation, additional verification,
+      or written clarification. Submission of a name differing from existing records
+      may delay completion of this process and could require re-filing under amended
+      identification criteria.
+    requiredSlot: {fileID: 11400000, guid: 1e070433b55e14a41888779db971575d, type: 2}
+    timeToCompleteSeconds: 15
+  - title: International Travel Documentation Confirmation
+    promptText: In accordance with recent record standardization initiatives, you
+      are required to re-submit your full legal name for comparison against previously
+      archived documentation. This measure ensures uniformity across systems and
+      minimizes inconsistencies that may arise from clerical variance, transcription
+      errors, or unauthorized alterations. Please ensure that your entry matches
+      the most current legally recognized form of your name.  Discrepancies between
+      submissions may necessitate supplementary documentation, additional verification,
+      or written clarification. Submission of a name differing from existing records
+      may delay completion of this process and could require re-filing under amended
+      identification criteria.
+    requiredSlot: {fileID: 11400000, guid: d4da788ecdbd30f41810cbdff1dd3a0e, type: 2}
+    timeToCompleteSeconds: 15

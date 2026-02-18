@@ -171,6 +171,15 @@ public class GameStateManager : MonoBehaviour
         return Mathf.Clamp(delay, minFormArrivalSeconds, baseFormArrivalSeconds);
     }
 
+    public float GetSpawnPressure01()
+    {
+        if (Mathf.Approximately(baseFormArrivalSeconds, minFormArrivalSeconds))
+            return 0f;
+
+        float delay = GetCurrentFormArrivalDelay();
+        return Mathf.Clamp01(Mathf.InverseLerp(baseFormArrivalSeconds, minFormArrivalSeconds, delay));
+    }
+
     public void RegisterSubmissionSuccess()
     {
         SubmissionCount++;

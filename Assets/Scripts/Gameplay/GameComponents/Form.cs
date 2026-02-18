@@ -5,6 +5,14 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine.UI;
 
+public struct FormValidationResult
+{
+    public int TotalFields;
+    public int CorrectFields;
+    public int IncorrectOrEmptyFields;
+    public bool IsValid;
+}
+
 public class Form : MonoBehaviour
 {
     public FormDefinition Definition { get; private set; }
@@ -192,16 +200,47 @@ public class Form : MonoBehaviour
 
     public bool VerifyForm()
     {
+        return EvaluateValidation().IsValid;
+    }
+
+    public FormValidationResult EvaluateValidation()
+    {
+        var result = new FormValidationResult();
+
+        if (formSlots == null || formSlots.Count == 0)
+        {
+            result.IsValid = true;
+            return result;
+        }
+
         foreach (var slot in formSlots)
         {
+            result.TotalFields++;
+
             if (!slot.CurrentWordBlock)
-                return false;
+            {
+                result.IncorrectOrEmptyFields++;
+                continue;
+            }
             if (slot.CurrentWordBlock.valueType != slot.requiredType)
             {
-                return false;
+                result.IncorrectOrEmptyFields++;
+                continue;
             }
+
+            result.CorrectFields++;
         }
-        return true;
+
+        result.IsValid = result.IncorrectOrEmptyFields == 0;
+        return result;
+    }
+
+    public float GetRemainingTimeNormalized()
+    {
+        if (timeToCompleteSeconds < 0f || totalSeconds <= 0f)
+            return 0f;
+
+        return Mathf.Clamp01(remainingSeconds / totalSeconds);
     }
 
     private void InitializeTiming()

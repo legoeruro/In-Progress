@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class FormManager : MonoBehaviour
 {
@@ -9,6 +10,9 @@ public class FormManager : MonoBehaviour
     public GameStateManager gameStateManager;
     public FormFactory formFactory;
     [SerializeField] private InventoryCatalog inventoryCatalog;
+    [SerializeField] private AlphaScoreService alphaScoreService;
+    [SerializeField] private FormSpawnSource formSpawnSource;
+    [SerializeField] private bool useFormSpawnSource;
 
     [Header("Form Groups")]
     public List<FormGroup> formGroups = new List<FormGroup>();
@@ -22,6 +26,11 @@ public class FormManager : MonoBehaviour
     [SerializeField] private bool enableTimedArrivals = true;
     [SerializeField] private float idleCheckSeconds = 1f;
 
+    [Header("Alpha Fail Condition")]
+    [SerializeField] private bool enableLoseOnUnfilledOverflow = true;
+    [SerializeField] private int maxUnfilledForms = 5;
+    [SerializeField] private string loseSceneName = "LoseScene";
+
     // Form data
     private List<FormDefinition> incomingForms = new List<FormDefinition>();
     private List<FormDefinition> submittedForms = new List<FormDefinition>();
@@ -34,6 +43,8 @@ public class FormManager : MonoBehaviour
     private Queue<FormDefinition> pendingSpawnQueue = new Queue<FormDefinition>();
     private HashSet<FormDefinition> pendingSpawnSet = new HashSet<FormDefinition>();
     private Coroutine arrivalRoutine;
+    private bool hasBootstrappedSpawnSource;
+    private bool loseSceneTriggered;
 
     // Actions
     public event Action<FormGroup> FormGroupUnlocked;
@@ -41,6 +52,7 @@ public class FormManager : MonoBehaviour
     public event Action<FormDefinition> FormSubmitted;
     public event Action<FormDefinition> FormSubmissionFailed;
     public event Action<FormDefinition> FormDiscarded;
+    public event Action LoseTriggered;
 
 
     public List<FormDefinition> IncomingForms => incomingForms;
@@ -57,11 +69,13 @@ public class FormManager : MonoBehaviour
             gameStateManager = GameStateManager.Instance;
         if (inventoryCatalog == null)
             inventoryCatalog = FindFirstObjectByType<InventoryCatalog>();
+        if (alphaScoreService == null)
+            alphaScoreService = FindFirstObjectByType<AlphaScoreService>();
     }
 
     private void OnEnable()
     {
-        if (listenForFlagChanges && gameStateManager != null)
+        if (!useFormSpawnSource && listenForFlagChanges && gameStateManager != null)
             gameStateManager.FlagStateChanged += OnFlagStateChanged;
 
         if (submitZone != null)
@@ -70,12 +84,15 @@ public class FormManager : MonoBehaviour
         if (enableTimedArrivals)
             arrivalRoutine = StartCoroutine(FormArrivalLoop());
 
-        UpdateFormAvailability();
+        if (useFormSpawnSource)
+            BootstrapSpawnSourceIfNeeded();
+        else
+            UpdateFormAvailability();
     }
 
     private void OnDisable()
     {
-        if (listenForFlagChanges && gameStateManager != null)
+        if (!useFormSpawnSource && listenForFlagChanges && gameStateManager != null)
             gameStateManager.FlagStateChanged -= OnFlagStateChanged;
 
         if (submitZone != null)
@@ -86,6 +103,8 @@ public class FormManager : MonoBehaviour
             StopCoroutine(arrivalRoutine);
             arrivalRoutine = null;
         }
+
+        hasBootstrappedSpawnSource = false;
     }
 
     private void OnFlagStateChanged(GameFlags flag, bool state)
@@ -95,6 +114,9 @@ public class FormManager : MonoBehaviour
 
     public void UpdateFormAvailability()
     {
+        if (useFormSpawnSource)
+            return;
+
         if (gameStateManager == null)
         {
             Debug.LogWarning("FormManager: GameStateManager reference is missing.");
@@ -211,6 +233,7 @@ public class FormManager : MonoBehaviour
         ApplyRewards(def.rewardsOnReceive, def, formInstance);
         formInstance.PlaySpawnAnimation();
         FormCreated?.Invoke(def, formInstance);
+        CheckLoseCondition();
     }
 
     public bool SubmitForm(Form form)
@@ -227,8 +250,9 @@ public class FormManager : MonoBehaviour
             }
         }
 
-        bool isValidSubmission = form.VerifyForm() && !def.shouldBeDiscarded;
-        ResolveFormOutcome(def, form, isSuccess: isValidSubmission, wasDiscarded: false);
+        var validation = form.EvaluateValidation();
+        bool isValidSubmission = validation.IsValid && !def.shouldBeDiscarded;
+        ResolveFormOutcome(def, form, isSuccess: isValidSubmission, wasDiscarded: false, validation);
         return isValidSubmission;
     }
 
@@ -247,11 +271,12 @@ public class FormManager : MonoBehaviour
         }
 
         // Current design: discarding always counts as submission failure.
-        ResolveFormOutcome(def, form, isSuccess: false, wasDiscarded: true);
+        var validation = form.EvaluateValidation();
+        ResolveFormOutcome(def, form, isSuccess: false, wasDiscarded: true, validation);
         return true;
     }
 
-    private void ResolveFormOutcome(FormDefinition def, Form form, bool isSuccess, bool wasDiscarded)
+    private void ResolveFormOutcome(FormDefinition def, Form form, bool isSuccess, bool wasDiscarded, FormValidationResult validation)
     {
         incomingForms.Remove(def);
         if (!submittedForms.Contains(def))
@@ -272,6 +297,12 @@ public class FormManager : MonoBehaviour
             FormSubmissionFailed?.Invoke(def);
             if (wasDiscarded)
                 FormDiscarded?.Invoke(def);
+        }
+
+        if (alphaScoreService != null)
+        {
+            float spawnPressure = gameStateManager != null ? gameStateManager.GetSpawnPressure01() : 0f;
+            alphaScoreService.ApplySubmission(isSuccess, form, validation, spawnPressure);
         }
 
         CheckForGroupCompletion(def);
@@ -425,6 +456,54 @@ public class FormManager : MonoBehaviour
                 yield return new WaitForSeconds(delay);
 
             SpawnForm(next);
+            if (useFormSpawnSource)
+                QueueNextFromSpawnSource();
         }
+    }
+
+    private void BootstrapSpawnSourceIfNeeded()
+    {
+        if (hasBootstrappedSpawnSource || formSpawnSource == null)
+            return;
+
+        formSpawnSource.InitializeSource(this, gameStateManager);
+
+        foreach (var def in formSpawnSource.GetInitialForms())
+        {
+            if (def == null) continue;
+            AddIncomingForm(def);
+            SpawnForm(def);
+        }
+
+        QueueNextFromSpawnSource();
+        hasBootstrappedSpawnSource = true;
+    }
+
+    private void QueueNextFromSpawnSource()
+    {
+        if (!useFormSpawnSource || formSpawnSource == null)
+            return;
+
+        var next = formSpawnSource.GetNextForm();
+        if (next == null)
+            return;
+
+        QueueIncomingForm(next);
+    }
+
+    private void CheckLoseCondition()
+    {
+        if (!enableLoseOnUnfilledOverflow || loseSceneTriggered)
+            return;
+
+        int threshold = Mathf.Max(0, maxUnfilledForms);
+        if (activeFormDefs.Count <= threshold)
+            return;
+
+        loseSceneTriggered = true;
+        LoseTriggered?.Invoke();
+
+        if (!string.IsNullOrWhiteSpace(loseSceneName))
+            SceneManager.LoadScene(loseSceneName);
     }
 }
