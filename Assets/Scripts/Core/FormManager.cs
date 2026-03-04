@@ -2,17 +2,21 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.SceneManagement;
 
-public class FormManager : MonoBehaviour
+public class FormManager : MonoBehaviour, IFormQueueSource
 {
     [Header("References")]
     public GameStateManager gameStateManager;
     public FormFactory formFactory;
     [SerializeField] private InventoryCatalog inventoryCatalog;
     [SerializeField] private AlphaScoreService alphaScoreService;
-    [SerializeField] private FormWindowMenu formWindowMenu;
-    [SerializeField] private bool useFormWindowMenu = true;
+    [SerializeField] private FormWorkspaceTable workspaceTable;
+    [FormerlySerializedAs("formWindowMenu")]
+    [SerializeField] private MonoBehaviour formDockBehaviour;
+    [FormerlySerializedAs("useFormWindowMenu")]
+    [SerializeField] private bool useFormDock = true;
     [SerializeField] private FormSpawnSource formSpawnSource;
     [SerializeField] private bool useFormSpawnSource;
 
@@ -43,11 +47,13 @@ public class FormManager : MonoBehaviour
     private Dictionary<Form, FormDefinition> activeFormDefs = new Dictionary<Form, FormDefinition>();
     private Dictionary<FormGroup, HashSet<FormDefinition>> groupRemainingForms = new Dictionary<FormGroup, HashSet<FormDefinition>>();
     private Dictionary<FormDefinition, FormGroup> groupByForm = new Dictionary<FormDefinition, FormGroup>();
-    private Queue<FormDefinition> pendingSpawnQueue = new Queue<FormDefinition>();
-    private HashSet<FormDefinition> pendingSpawnSet = new HashSet<FormDefinition>();
+    private Queue<FormDefinition> arrivalQueue = new Queue<FormDefinition>();
+    private HashSet<FormDefinition> arrivalSet = new HashSet<FormDefinition>();
+    private readonly List<Form> inboxForms = new List<Form>();
     private Coroutine arrivalRoutine;
     private bool hasBootstrappedSpawnSource;
     private bool loseSceneTriggered;
+    private IFormDock formDock;
 
     // Actions
     public event Action<FormGroup> FormGroupUnlocked;
@@ -56,10 +62,12 @@ public class FormManager : MonoBehaviour
     public event Action<FormDefinition> FormSubmissionFailed;
     public event Action<FormDefinition> FormDiscarded;
     public event Action LoseTriggered;
+    public event Action<int> PendingSpawnQueueChanged;
 
 
     public List<FormDefinition> IncomingForms => incomingForms;
     public IReadOnlyList<FormDefinition> SubmittedForms => submittedForms;
+    public int PendingSpawnCount => inboxForms.Count;
 
     // do we need this?
     public IReadOnlyList<WordBlock> OwnedWordBlocks => gameStateManager != null
@@ -74,8 +82,9 @@ public class FormManager : MonoBehaviour
             inventoryCatalog = FindFirstObjectByType<InventoryCatalog>();
         if (alphaScoreService == null)
             alphaScoreService = FindFirstObjectByType<AlphaScoreService>();
-        if (formWindowMenu == null)
-            formWindowMenu = FindFirstObjectByType<FormWindowMenu>();
+        if (workspaceTable == null)
+            workspaceTable = FindFirstObjectByType<FormWorkspaceTable>();
+        ResolveFormDock();
     }
 
     private void OnEnable()
@@ -184,7 +193,10 @@ public class FormManager : MonoBehaviour
             if (spawnImmediately)
             {
                 AddIncomingForm(def);
-                SpawnForm(def);
+                if (UseInboxFlow())
+                    QueueIncomingForm(def);
+                else
+                    SpawnForm(def);
             }
             else
             {
@@ -203,6 +215,9 @@ public class FormManager : MonoBehaviour
 
             if (!submittedForms.Contains(def))
                 incomingForms.Remove(def);
+
+            RemoveFromArrivalQueue(def);
+            RemoveInboxForm(def);
         }
     }
 
@@ -210,7 +225,12 @@ public class FormManager : MonoBehaviour
     {
         if (!AddIncomingForm(formDefinition)) return;
 
-        EnqueueForSpawn(formDefinition);
+        if (enableTimedArrivals)
+            EnqueueForArrival(formDefinition);
+        else if (UseInboxFlow())
+            SpawnHiddenInboxForm(formDefinition);
+        else
+            SpawnForm(formDefinition);
     }
 
     private bool AddIncomingForm(FormDefinition formDefinition)
@@ -236,9 +256,67 @@ public class FormManager : MonoBehaviour
         activeFormDefs[formInstance] = def;
         formInstance.Expired += OnFormExpired;
         ApplyRewards(def.rewardsOnReceive, def, formInstance);
-        bool parkedInWindow = useFormWindowMenu && formWindowMenu != null && formWindowMenu.RegisterSpawnedForm(formInstance);
+        bool parkedInWindow = useFormDock && formDock != null && formDock.RegisterSpawnedForm(formInstance);
         if (!parkedInWindow)
+        {
+            EnsureWorkspaceTracker(formInstance);
             formInstance.PlaySpawnAnimation();
+        }
+        FormCreated?.Invoke(def, formInstance);
+        CheckLoseCondition();
+    }
+
+    public bool TryOpenNextIncomingForm()
+    {
+        var next = GetInboxFormClosestToExpiry();
+        if (next == null)
+            return false;
+
+        RemoveInboxForm(next);
+        next.SetInboxHidden(false);
+        SpawnFormAtCenter(next.Definition);
+        return true;
+    }
+
+    private void SpawnFormAtCenter(FormDefinition def)
+    {
+        if (activeForms.TryGetValue(def, out var existingForm))
+        {
+            if (!existingForm.gameObject.activeSelf)
+                existingForm.gameObject.SetActive(true);
+            existingForm.SetInboxHidden(false);
+            var existingDrag = existingForm.GetComponent<DraggableUI>();
+            if (existingDrag != null)
+                existingDrag.enabled = true;
+            if (workspaceTable != null)
+                workspaceTable.PlaceAtCenter(existingForm);
+            else if (formFactory != null)
+                formFactory.PlaceAtCenter(existingForm);
+            EnsureWorkspaceTracker(existingForm);
+            existingForm.transform.localScale = Vector3.one;
+            existingForm.PlaySpawnAnimation();
+            return;
+        }
+
+        var formInstance = formFactory.Create(def);
+        activeForms[def] = formInstance;
+        activeFormDefs[formInstance] = def;
+        formInstance.Expired += OnFormExpired;
+        ApplyRewards(def.rewardsOnReceive, def, formInstance);
+
+        var drag = formInstance.GetComponent<DraggableUI>();
+        if (drag != null)
+            drag.enabled = true;
+
+        formInstance.SetInboxHidden(false);
+        if (workspaceTable != null)
+            workspaceTable.PlaceAtCenter(formInstance);
+        else if (formFactory != null)
+            formFactory.PlaceAtCenter(formInstance);
+        EnsureWorkspaceTracker(formInstance);
+        formInstance.transform.localScale = Vector3.one;
+        formInstance.PlaySpawnAnimation();
+
         FormCreated?.Invoke(def, formInstance);
         CheckLoseCondition();
     }
@@ -294,6 +372,7 @@ public class FormManager : MonoBehaviour
         incomingForms.Remove(def);
         if (!submittedForms.Contains(def))
             submittedForms.Add(def);
+        RemoveInboxForm(form);
 
         if (isSuccess)
         {
@@ -319,8 +398,7 @@ public class FormManager : MonoBehaviour
         }
 
         CheckForGroupCompletion(def);
-        if (formWindowMenu != null)
-            formWindowMenu.UnregisterForm(form);
+        formDock?.UnregisterForm(form);
         form.Expired -= OnFormExpired;
         activeFormDefs.Remove(form);
         if (def != null)
@@ -390,9 +468,9 @@ public class FormManager : MonoBehaviour
             if (enableSubmissionDebugLogs)
                 Debug.LogWarning("[FormManager] Timeout: form expired but has no FormDefinition.");
             form.Expired -= OnFormExpired;
-            if (formWindowMenu != null)
-                formWindowMenu.UnregisterForm(form);
+            formDock?.UnregisterForm(form);
             activeFormDefs.Remove(form);
+            RemoveInboxForm(form);
             Destroy(form.gameObject);
             return;
         }
@@ -442,22 +520,22 @@ public class FormManager : MonoBehaviour
         }
     }
 
-    private void EnqueueForSpawn(FormDefinition def)
+    private void EnqueueForArrival(FormDefinition def)
     {
         if (def == null) return;
         if (activeForms.ContainsKey(def)) return;
-        if (pendingSpawnSet.Contains(def)) return;
+        if (arrivalSet.Contains(def)) return;
 
-        pendingSpawnQueue.Enqueue(def);
-        pendingSpawnSet.Add(def);
+        arrivalQueue.Enqueue(def);
+        arrivalSet.Add(def);
     }
 
-    private FormDefinition DequeueNextSpawn()
+    private FormDefinition DequeueNextArrival()
     {
-        while (pendingSpawnQueue.Count > 0)
+        while (arrivalQueue.Count > 0)
         {
-            var next = pendingSpawnQueue.Dequeue();
-            pendingSpawnSet.Remove(next);
+            var next = arrivalQueue.Dequeue();
+            arrivalSet.Remove(next);
 
             if (next == null) continue;
             if (submittedForms.Contains(next)) continue;
@@ -484,7 +562,7 @@ public class FormManager : MonoBehaviour
                 continue;
             }
 
-            var next = DequeueNextSpawn();
+            var next = DequeueNextArrival();
             if (next == null)
             {
                 yield return new WaitForSeconds(idleCheckSeconds);
@@ -495,7 +573,10 @@ public class FormManager : MonoBehaviour
             if (delay > 0f)
                 yield return new WaitForSeconds(delay);
 
-            SpawnForm(next);
+            if (UseInboxFlow())
+                SpawnHiddenInboxForm(next);
+            else
+                SpawnForm(next);
             if (useFormSpawnSource)
                 QueueNextFromSpawnSource();
         }
@@ -512,7 +593,17 @@ public class FormManager : MonoBehaviour
         {
             if (def == null) continue;
             AddIncomingForm(def);
-            SpawnForm(def);
+            if (UseInboxFlow())
+            {
+                if (enableTimedArrivals)
+                    EnqueueForArrival(def);
+                else
+                    SpawnHiddenInboxForm(def);
+            }
+            else
+            {
+                SpawnForm(def);
+            }
         }
 
         QueueNextFromSpawnSource();
@@ -529,6 +620,164 @@ public class FormManager : MonoBehaviour
             return;
 
         QueueIncomingForm(next);
+    }
+
+    private void RemoveFromArrivalQueue(FormDefinition def)
+    {
+        if (def == null || !arrivalSet.Remove(def))
+            return;
+
+        var rebuilt = new Queue<FormDefinition>(arrivalQueue.Count);
+        while (arrivalQueue.Count > 0)
+        {
+            var current = arrivalQueue.Dequeue();
+            if (current == def)
+                continue;
+            rebuilt.Enqueue(current);
+        }
+
+        arrivalQueue = rebuilt;
+    }
+
+    private void NotifyPendingSpawnQueueChanged()
+    {
+        PendingSpawnQueueChanged?.Invoke(PendingSpawnCount);
+    }
+
+    private void SpawnHiddenInboxForm(FormDefinition def)
+    {
+        if (def == null)
+            return;
+
+        if (activeForms.TryGetValue(def, out var existingForm))
+        {
+            if (!inboxForms.Contains(existingForm))
+                inboxForms.Add(existingForm);
+
+            existingForm.SetInboxHidden(true);
+            var existingDrag = existingForm.GetComponent<DraggableUI>();
+            if (existingDrag != null)
+                existingDrag.enabled = false;
+
+            if (formFactory != null)
+                formFactory.PlaceInInboxHidden(existingForm);
+
+            GameSoundController.Instance?.PlayMailIncoming();
+            NotifyPendingSpawnQueueChanged();
+            return;
+        }
+
+        var formInstance = formFactory.Create(def);
+        activeForms[def] = formInstance;
+        activeFormDefs[formInstance] = def;
+        formInstance.Expired += OnFormExpired;
+        ApplyRewards(def.rewardsOnReceive, def, formInstance);
+
+        var drag = formInstance.GetComponent<DraggableUI>();
+        if (drag != null)
+            drag.enabled = false;
+
+        formInstance.SetInboxHidden(true);
+        if (formFactory != null)
+            formFactory.PlaceInInboxHidden(formInstance);
+
+        inboxForms.Add(formInstance);
+        GameSoundController.Instance?.PlayMailIncoming();
+        NotifyPendingSpawnQueueChanged();
+        FormCreated?.Invoke(def, formInstance);
+        CheckLoseCondition();
+    }
+
+    private Form GetInboxFormClosestToExpiry()
+    {
+        Form bestForm = null;
+        float bestRemainingSeconds = float.PositiveInfinity;
+
+        for (int i = inboxForms.Count - 1; i >= 0; i--)
+        {
+            var form = inboxForms[i];
+            if (form == null)
+            {
+                inboxForms.RemoveAt(i);
+                continue;
+            }
+
+            float remainingSeconds = form.GetRemainingSeconds();
+            if (bestForm == null || remainingSeconds < bestRemainingSeconds)
+            {
+                bestForm = form;
+                bestRemainingSeconds = remainingSeconds;
+            }
+        }
+
+        return bestForm;
+    }
+
+    private void RemoveInboxForm(Form form)
+    {
+        if (form == null)
+            return;
+
+        if (inboxForms.Remove(form))
+            NotifyPendingSpawnQueueChanged();
+    }
+
+    private void RemoveInboxForm(FormDefinition def)
+    {
+        if (def == null)
+            return;
+
+        for (int i = inboxForms.Count - 1; i >= 0; i--)
+        {
+            var form = inboxForms[i];
+            if (form == null)
+            {
+                inboxForms.RemoveAt(i);
+                continue;
+            }
+
+            if (form.Definition != def)
+                continue;
+
+            inboxForms.RemoveAt(i);
+            NotifyPendingSpawnQueueChanged();
+            return;
+        }
+    }
+
+    private void ResolveFormDock()
+    {
+        formDock = formDockBehaviour as IFormDock;
+        if (formDock != null)
+            return;
+
+        var candidates = FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+        for (int i = 0; i < candidates.Length; i++)
+        {
+            formDock = candidates[i] as IFormDock;
+            if (formDock == null)
+                continue;
+
+            formDockBehaviour = candidates[i];
+            return;
+        }
+    }
+
+    private bool UseInboxFlow()
+    {
+        return !useFormDock;
+    }
+
+    private void EnsureWorkspaceTracker(Form form)
+    {
+        if (form == null || workspaceTable == null)
+            return;
+
+        var tracker = form.GetComponent<FormWorkspaceScaleTracker>();
+        if (tracker == null)
+            tracker = form.gameObject.AddComponent<FormWorkspaceScaleTracker>();
+
+        tracker.Initialize(workspaceTable, onlyWhileDragging: true);
     }
 
     private void CheckLoseCondition()

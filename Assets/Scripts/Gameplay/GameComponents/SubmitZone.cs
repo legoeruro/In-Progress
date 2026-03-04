@@ -21,6 +21,7 @@ public class SubmitZone : MonoBehaviour, IDropTarget
     private Image zoneImage;
 
     public event Action<List<Form>> SubmitRequested;
+    public event Action<int> RegisteredFormsChanged;
 
     public IReadOnlyCollection<Form> RegisteredForms => registeredForms;
 
@@ -35,6 +36,8 @@ public class SubmitZone : MonoBehaviour, IDropTarget
     {
         if (submitButton != null)
             submitButton.onClick.AddListener(SubmitAll);
+
+        NotifyRegisteredFormsChanged();
     }
 
     private void OnDisable()
@@ -75,6 +78,7 @@ public class SubmitZone : MonoBehaviour, IDropTarget
 
         // TODO: in the future - submit zone could also be different mail addresses
         form.SetSubmitZone(this);
+        NotifyRegisteredFormsChanged();
     }
 
     public void Deregister(Form form)
@@ -94,12 +98,21 @@ public class SubmitZone : MonoBehaviour, IDropTarget
 
         if (form.CurrentSubmitZone == this)
             form.ClearSubmitZone();
+
+        NotifyRegisteredFormsChanged();
     }
 
     public void SubmitAll()
     {
         if (registeredForms.Count == 0) return;
+        GameSoundController.Instance?.PlayMailOutgoing();
         SubmitRequested?.Invoke(new List<Form>(registeredForms));
+        NotifyRegisteredFormsChanged();
+    }
+
+    private void NotifyRegisteredFormsChanged()
+    {
+        RegisteredFormsChanged?.Invoke(registeredForms.Count);
     }
 
     public void OnPointerEnter()

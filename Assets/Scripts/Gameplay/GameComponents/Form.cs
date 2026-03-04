@@ -243,6 +243,26 @@ public class Form : MonoBehaviour
         return Mathf.Clamp01(remainingSeconds / totalSeconds);
     }
 
+    public float GetRemainingSeconds()
+    {
+        if (timeToCompleteSeconds < 0f)
+            return float.PositiveInfinity;
+
+        return Mathf.Max(0f, remainingSeconds);
+    }
+
+    public void SetInboxHidden(bool hidden)
+    {
+        if (canvasGroup == null)
+            canvasGroup = GetComponent<CanvasGroup>();
+        if (canvasGroup == null)
+            canvasGroup = gameObject.AddComponent<CanvasGroup>();
+
+        canvasGroup.alpha = hidden ? 0f : 1f;
+        canvasGroup.blocksRaycasts = !hidden;
+        canvasGroup.interactable = !hidden;
+    }
+
     private void InitializeTiming()
     {
         ResetTimingState();

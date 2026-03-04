@@ -13,13 +13,13 @@ MonoBehaviour:
   m_Name: GovernmentBasicConfigText
   m_EditorClassIdentifier: Assembly-CSharp::FormTextFormattingConfig
   title:
-    fontSize: 30
+    fontSize: 25
     lineHeight: 25
     color: {r: 0, g: 0, b: 0, a: 1}
     alignment: 258
     fontStyle: 1
   h1:
-    fontSize: 25
+    fontSize: 20
     lineHeight: 20
     color: {r: 0, g: 0, b: 0, a: 1}
     alignment: 257
@@ -37,7 +37,7 @@ MonoBehaviour:
     alignment: 257
     fontStyle: 1
   body:
-    fontSize: 17
+    fontSize: 13
     lineHeight: 14
     color: {r: 0, g: 0, b: 0, a: 1}
     alignment: 257

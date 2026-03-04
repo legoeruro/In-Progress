@@ -30,6 +30,7 @@ public class DraggableUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
     [SerializeField] private bool spawnedCopiesDestroyOnInvalidDrop = true;
 
     private DraggableUI activeDragCopy;
+    private GameSoundController.DragSoundType dragSoundType = GameSoundController.DragSoundType.None;
 
     private void Awake()
     {
@@ -42,6 +43,11 @@ public class DraggableUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
         rect = GetComponent<RectTransform>();
         canvasGroup = GetComponent<CanvasGroup>();
         if (canvasGroup == null) canvasGroup = gameObject.AddComponent<CanvasGroup>();
+
+        if (GetComponent<WordBlock>() != null)
+            dragSoundType = GameSoundController.DragSoundType.WordBlock;
+        else if (GetComponent<Form>() != null)
+            dragSoundType = GameSoundController.DragSoundType.Form;
     }
 
     public void OnBeginDrag(PointerEventData eventData)
@@ -88,6 +94,7 @@ public class DraggableUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
     {
         IsDragging = true;
         wasAcceptedByDropTarget = false;
+        GameSoundController.Instance?.PlayDragPress(dragSoundType);
 
         startAnchoredPos = rect.anchoredPosition;
         startParent = rect.parent;
@@ -143,6 +150,7 @@ public class DraggableUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
 
         IsDragging = false;
         canvasGroup.blocksRaycasts = true;
+        GameSoundController.Instance?.PlayDragRelease(dragSoundType);
 
         DragEnded?.Invoke(this);
 

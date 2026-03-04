@@ -2,10 +2,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class FormWindowMenu : MonoBehaviour
+public class FormWindowMenu : MonoBehaviour, IFormDock
 {
     [Header("References")]
     [SerializeField] private FormFactory formFactory;
+    [SerializeField] private FormWorkspaceTable workspaceTable;
     [SerializeField] private RectTransform viewport;
     [SerializeField] private RectTransform contentRoot;
     [SerializeField] private Slider scrollSlider;
@@ -29,6 +30,8 @@ public class FormWindowMenu : MonoBehaviour
     {
         if (formFactory == null)
             formFactory = FindFirstObjectByType<FormFactory>();
+        if (workspaceTable == null)
+            workspaceTable = FindFirstObjectByType<FormWorkspaceTable>();
         if (viewport == null && contentRoot != null)
             viewport = contentRoot.parent as RectTransform;
 
@@ -118,12 +121,29 @@ public class FormWindowMenu : MonoBehaviour
         if (drag != null)
             drag.enabled = true;
 
-        if (formFactory != null)
+        if (workspaceTable != null)
+        {
+            workspaceTable.PlaceAtCenter(form);
+            EnsureWorkspaceScaleTracker(form);
+        }
+        else if (formFactory != null)
             formFactory.PlaceAtCenter(form);
 
         form.transform.localScale = Vector3.one;
         form.PlaySpawnAnimation();
         ApplyLayoutAndScroll();
+    }
+
+    private void EnsureWorkspaceScaleTracker(Form form)
+    {
+        if (form == null || workspaceTable == null)
+            return;
+
+        var tracker = form.GetComponent<FormWorkspaceScaleTracker>();
+        if (tracker == null)
+            tracker = form.gameObject.AddComponent<FormWorkspaceScaleTracker>();
+
+        tracker.Initialize(workspaceTable, onlyWhileDragging: true);
     }
 
     private void ReleaseAllParkedForms()

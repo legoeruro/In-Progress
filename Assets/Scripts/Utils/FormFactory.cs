@@ -3,6 +3,7 @@ using UnityEngine;
 public class FormFactory : MonoBehaviour
 {
     [SerializeField] private Transform formsParent; // canvas
+    [SerializeField] private Transform inboxHiddenParent;
     [SerializeField] private Form formPrefab;
     public Transform FormsParent => formsParent;
 
@@ -31,5 +32,25 @@ public class FormFactory : MonoBehaviour
         rect.pivot = new Vector2(0.5f, 0.5f);
         rect.anchoredPosition = Vector2.zero;
         rect.SetAsLastSibling();
+    }
+
+    public void PlaceInInboxHidden(Form form)
+    {
+        if (form == null)
+            return;
+
+        Transform targetParent = inboxHiddenParent != null ? inboxHiddenParent : formsParent;
+        if (targetParent == null)
+            return;
+
+        var rect = form.GetComponent<RectTransform>();
+        if (rect == null)
+            return;
+
+        rect.SetParent(targetParent, worldPositionStays: false);
+        rect.anchorMin = new Vector2(0.5f, 0.5f);
+        rect.anchorMax = new Vector2(0.5f, 0.5f);
+        rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.anchoredPosition = Vector2.zero;
     }
 }

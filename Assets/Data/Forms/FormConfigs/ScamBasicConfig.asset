@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3ac2d14042075be44b9a613c490dafb8, type: 3}
   m_Name: ScamBasicConfig
   m_EditorClassIdentifier: Assembly-CSharp::FormLayoutConfig
-  padding: {x: 35, y: 35}
+  padding: {x: 20, y: 20}
   slotSpacing: 0
   slotSize: {x: 0, y: 50}
   slotBackgroundColor: {r: 0.9, g: 0.9, b: 0.9, a: 1}
